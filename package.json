@@ -19,7 +19,11 @@
     "lint": "eslint src/ --ext .ts,.tsx",
     "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
-    "deploy": "./scripts/deploy.sh"
+    "deploy": "./scripts/deploy.sh",
+    "eas:build:dev": "eas build --profile development --platform android",
+    "eas:build:preview": "eas build --profile preview --platform android",
+    "eas:build:prod": "eas build --profile production --platform android",
+    "eas:run:android": "eas run --platform android"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

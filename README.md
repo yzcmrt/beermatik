@@ -48,7 +48,8 @@ Beermatik, kullanıcıların bira tüketimini takip etmeleri ve unutmamaları i�
 
 - ✅ iOS 13.0+
 - ✅ Android 8.0+ (API 26+)
-- ✅ Expo Go (Geliştirme)
+- ⚠️ **Expo Go Desteği Kaldırıldı** (SDK 53+)
+- ✅ **Development Build** (Önerilen)
 
 ## 🚀 Kurulum
 
@@ -56,7 +57,9 @@ Beermatik, kullanıcıların bira tüketimini takip etmeleri ve unutmamaları i�
 - Node.js 18+
 - npm veya yarn
 - Expo CLI
+- EAS CLI
 - iOS Simulator (macOS) veya Android Studio
+- **Expo hesabı** (Development Build için)
 
 ### Adımlar
 
@@ -71,27 +74,66 @@ cd beermatik
 npm install
 ```
 
-3. **Uygulamayı başlatın**
+3. **EAS CLI'yi kurun**
 ```bash
-# Geliştirme sunucusu
-npm start
-
-# iOS simülatörde çalıştır
-npm run ios
-
-# Android emülatörde çalıştır
-npm run android
+npm install -g eas-cli
 ```
+
+4. **EAS'e giriş yapın**
+```bash
+eas login
+```
+
+5. **Development Build oluşturun**
+```bash
+# Android için development build
+npm run eas:build:dev
+
+# Veya doğrudan çalıştır (build + install)
+npm run eas:run:android
+```
+
+### ⚠️ Önemli Not: Expo Go Desteği Kaldırıldı
+
+Expo SDK 53 ile birlikte `expo-notifications` paketinin push notification özelliği Expo Go'dan kaldırılmıştır. Bu nedenle:
+
+- ❌ **Expo Go ile çalışmaz** - Push notification hatası alırsınız
+- ✅ **Development Build kullanın** - Tam özellik desteği
+- ✅ **Production Build** - Store'a yükleme için
 
 ## 📦 Build ve Deploy
 
-### Android APK
+### Development Build (Önerilen)
 ```bash
-npm run build:android
+# Android development build
+npm run eas:build:dev
+
+# iOS development build
+eas build --profile development --platform ios
 ```
 
-### iOS IPA
+### Preview Build
 ```bash
+# Android preview build (APK)
+npm run eas:build:preview
+
+# iOS preview build
+eas build --profile preview --platform ios
+```
+
+### Production Build
+```bash
+# Android production build (AAB)
+npm run eas:build:prod
+
+# iOS production build
+eas build --profile production --platform ios
+```
+
+### Eski Expo Build (Deprecated)
+```bash
+# Artık önerilmiyor - EAS Build kullanın
+npm run build:android
 npm run build:ios
 ```
 
