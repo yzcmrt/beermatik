@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { triggerMediumHaptic } from '../utils/helpers';
 
 interface ResponsibleDrinkingWarningProps {
   beerCount: number;
@@ -110,7 +110,7 @@ export const ResponsibleDrinkingWarning: React.FC<ResponsibleDrinkingWarningProp
 
   const handleDismiss = async () => {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await triggerMediumHaptic();
     } catch (error) {
       console.error('Haptic feedback hatası:', error);
     }
@@ -119,7 +119,7 @@ export const ResponsibleDrinkingWarning: React.FC<ResponsibleDrinkingWarningProp
 
   const handleShowNext = async () => {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await triggerMediumHaptic();
     } catch (error) {
       console.error('Haptic feedback hatası:', error);
     }

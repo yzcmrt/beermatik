@@ -10,7 +10,7 @@ import {
   Vibration,
   Easing,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { triggerMediumHaptic } from '../utils/helpers';
 import { BEER_SIZES } from '../utils/constants';
 import { calculateVolume, formatNumber, getElapsedTime } from '../utils/helpers';
 import { globalStyles } from '../styles/globalStyles';
@@ -96,7 +96,7 @@ export const BeerCounter: React.FC<BeerCounterProps> = ({
   const handleBeerAdd = async () => {
     try {
       // Haptic feedback
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await triggerMediumHaptic();
       
       // Vibration (Android)
       Vibration.vibrate(100);

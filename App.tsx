@@ -1,8 +1,7 @@
 // Beermatik - Ana Uygulama
 
 import React, { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { View, StyleSheet } from 'react-native';
+import { StatusBar, View, StyleSheet } from 'react-native';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { NotificationService } from './src/services/NotificationService';
 import { StorageService } from './src/services/StorageService';
@@ -30,7 +29,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <AppNavigator />
-      <StatusBar style="light" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
     </View>
   );
 }

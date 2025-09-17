@@ -11,10 +11,10 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import * as Haptics from 'expo-haptics';
+import { triggerMediumHaptic } from '../utils/helpers';
 import { globalStyles } from '../styles/globalStyles';
 import { RootStackParamList } from '../navigation/AppNavigator';
 

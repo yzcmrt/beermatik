@@ -36,30 +36,29 @@ Beermatik, kullanıcıların bira tüketimini takip etmeleri ve unutmamaları i�
 
 ## 🛠️ Teknoloji Stack
 
-- **Framework**: React Native + Expo
+- **Framework**: React Native
 - **Dil**: TypeScript
 - **State Management**: React Hooks
 - **Veri Depolama**: AsyncStorage
-- **Bildirimler**: Expo Notifications
+- **Bildirimler**: React Native Push Notification
 - **Animasyonlar**: React Native Animated API
-- **Haptic Feedback**: Expo Haptics
+- **Haptic Feedback**: React Native Haptic Feedback
 
 ## 📱 Platform Desteği
 
 - ✅ iOS 13.0+
 - ✅ Android 8.0+ (API 26+)
-- ⚠️ **Expo Go Desteği Kaldırıldı** (SDK 53+)
-- ✅ **Development Build** (Önerilen)
+- ✅ **Pure React Native** (Expo bağımlılığı yok)
 
 ## 🚀 Kurulum
 
 ### Gereksinimler
 - Node.js 18+
 - npm veya yarn
-- Expo CLI
-- EAS CLI
+- React Native CLI
 - iOS Simulator (macOS) veya Android Studio
-- **Expo hesabı** (Development Build için)
+- Xcode (iOS için)
+- Android Studio (Android için)
 
 ### Adımlar
 
@@ -74,67 +73,42 @@ cd beermatik
 npm install
 ```
 
-3. **EAS CLI'yi kurun**
+3. **iOS için pod'ları yükleyin** (macOS)
 ```bash
-npm install -g eas-cli
+cd ios && pod install && cd ..
 ```
 
-4. **EAS'e giriş yapın**
+4. **Uygulamayı çalıştırın**
 ```bash
-eas login
+# Metro bundler'ı başlat
+npm start
+
+# Android'de çalıştır
+npm run android
+
+# iOS'ta çalıştır (macOS)
+npm run ios
 ```
-
-5. **Development Build oluşturun**
-```bash
-# Android için development build
-npm run eas:build:dev
-
-# Veya doğrudan çalıştır (build + install)
-npm run eas:run:android
-```
-
-### ⚠️ Önemli Not: Expo Go Desteği Kaldırıldı
-
-Expo SDK 53 ile birlikte `expo-notifications` paketinin push notification özelliği Expo Go'dan kaldırılmıştır. Bu nedenle:
-
-- ❌ **Expo Go ile çalışmaz** - Push notification hatası alırsınız
-- ✅ **Development Build kullanın** - Tam özellik desteği
-- ✅ **Production Build** - Store'a yükleme için
 
 ## 📦 Build ve Deploy
 
-### Development Build (Önerilen)
+### Android Build
 ```bash
-# Android development build
-npm run eas:build:dev
+# Debug APK
+cd android && ./gradlew assembleDebug
 
-# iOS development build
-eas build --profile development --platform ios
+# Release APK
+cd android && ./gradlew assembleRelease
+
+# Release AAB (Google Play Store)
+cd android && ./gradlew bundleRelease
 ```
 
-### Preview Build
+### iOS Build
 ```bash
-# Android preview build (APK)
-npm run eas:build:preview
-
-# iOS preview build
-eas build --profile preview --platform ios
-```
-
-### Production Build
-```bash
-# Android production build (AAB)
-npm run eas:build:prod
-
-# iOS production build
-eas build --profile production --platform ios
-```
-
-### Eski Expo Build (Deprecated)
-```bash
-# Artık önerilmiyor - EAS Build kullanın
-npm run build:android
-npm run build:ios
+# Xcode ile build
+# ios/Beermatik.xcworkspace dosyasını Xcode'da açın
+# Product > Archive ile build alın
 ```
 
 ## 🎨 Tasarım Sistemi

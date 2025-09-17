@@ -5,8 +5,8 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { BeerCounter } from '../components/BeerCounter';
 
 // Mock dependencies
-jest.mock('expo-haptics', () => ({
-  impactAsync: jest.fn(),
+jest.mock('../utils/helpers', () => ({
+  triggerMediumHaptic: jest.fn(),
 }));
 
 jest.mock('react-native', () => {

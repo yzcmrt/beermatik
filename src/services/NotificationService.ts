@@ -1,8 +1,7 @@
 // Beermatik - Bildirim Servisi
 
-import * as Notifications from 'expo-notifications';
-import { SchedulableTriggerInputTypes } from 'expo-notifications';
-import { Platform } from 'react-native';
+import { Platform, PermissionsAndroid } from 'react-native';
+import PushNotification, { DeliveredNotification } from 'react-native-push-notification';
 import { StorageService } from './StorageService';
 import { 
   NOTIFICATION_MESSAGES, 
@@ -15,16 +14,16 @@ import {
   getCurrentTimestamp 
 } from '../utils/helpers';
 
-// Bildirim davranışını yapılandır
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+let pushConfigured = false;
+function ensurePushConfigured(): void {
+  if (pushConfigured) return;
+  PushNotification.configure({
+    onNotification: () => {},
+    requestPermissions: false,
+    popInitialNotification: true,
+  });
+  pushConfigured = true;
+}
 
 export interface NotificationData {
   id: string;
@@ -57,30 +56,26 @@ export class NotificationService {
    */
   public async requestPermissions(): Promise<boolean> {
     try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        console.log('Bildirim izni verilmedi');
-        return false;
-      }
-
-      // Android için bildirim kanalı oluştur
+      ensurePushConfigured();
       if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('beermatik-reminders', {
-          name: 'Beermatik Hatırlatmaları',
-          description: 'Bira içme hatırlatmaları',
-          importance: Notifications.AndroidImportance.HIGH,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#FFD700',
-        });
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        // Kanal oluştur
+        PushNotification.createChannel(
+          {
+            channelId: 'beermatik-reminders',
+            channelName: 'Beermatik Hatırlatmaları',
+            channelDescription: 'Bira içme hatırlatmaları',
+            importance: 4,
+            vibrate: true,
+            vibration: 250,
+            soundName: 'default',
+          },
+          () => {}
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
       }
-
       return true;
     } catch (error) {
       console.error('Bildirim izni hatası:', error);
@@ -93,6 +88,7 @@ export class NotificationService {
    */
   public async startNotificationSystem(): Promise<void> {
     try {
+      ensurePushConfigured();
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) return;
 
@@ -100,7 +96,7 @@ export class NotificationService {
       
       if (session.beerCount === 1 && session.lastBeerTime > 0) {
         this.firstBeerTime = session.lastBeerTime;
-        this.scheduleNextNotification();
+        await this.scheduleNextNotification();
       }
     } catch (error) {
       console.error('Bildirim sistemi başlatma hatası:', error);
@@ -130,7 +126,7 @@ export class NotificationService {
         
         // Mevcut bildirimleri iptal et ve yenisini planla
         await this.cancelAllNotifications();
-        this.scheduleNextNotification();
+        await this.scheduleNextNotification();
       }
     } catch (error) {
       console.error('Bira ekleme bildirim hatası:', error);
@@ -140,7 +136,7 @@ export class NotificationService {
   /**
    * Sonraki bildirimi planlar
    */
-  private scheduleNextNotification(): void {
+  private async scheduleNextNotification(): Promise<void> {
     if (!this.firstBeerTime) return;
 
     const now = getCurrentTimestamp();
@@ -159,17 +155,15 @@ export class NotificationService {
 
     this.scheduledNotifications.set(notificationId, notificationData);
 
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: notificationData.title,
-        body: notificationData.body,
-        sound: 'default',
-        data: { type: 'beer_reminder' },
-      },
-      trigger: {
-        type: SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: this.notificationInterval * 60,
-      },
+    PushNotification.localNotificationSchedule({
+      channelId: 'beermatik-reminders',
+      title: notificationData.title,
+      message: notificationData.body,
+      allowWhileIdle: true,
+      playSound: true,
+      soundName: 'default',
+      date: new Date(nextNotificationTime),
+      userInfo: { type: 'beer_reminder' },
     });
 
     console.log(`Bildirim planlandı: ${new Date(nextNotificationTime).toLocaleString()}`);
@@ -180,7 +174,7 @@ export class NotificationService {
    */
   public async cancelAllNotifications(): Promise<void> {
     try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
+      PushNotification.cancelAllLocalNotifications();
       this.scheduledNotifications.clear();
       console.log('Tüm bildirimler iptal edildi');
     } catch (error) {
@@ -193,7 +187,7 @@ export class NotificationService {
    */
   public async cancelNotification(notificationId: string): Promise<void> {
     try {
-      await Notifications.cancelScheduledNotificationAsync(notificationId);
+      PushNotification.cancelLocalNotification(notificationId);
       this.scheduledNotifications.delete(notificationId);
     } catch (error) {
       console.error('Bildirim iptal hatası:', error);
@@ -219,9 +213,11 @@ export class NotificationService {
   /**
    * Bildirim geçmişini getirir
    */
-  public async getNotificationHistory(): Promise<Notifications.Notification[]> {
+  public async getNotificationHistory(): Promise<DeliveredNotification[]> {
     try {
-      return await Notifications.getPresentedNotificationsAsync();
+      return await new Promise<DeliveredNotification[]>((resolve) => {
+        PushNotification.getDeliveredNotifications((n: DeliveredNotification[]) => resolve(n));
+      });
     } catch (error) {
       console.error('Bildirim geçmişi hatası:', error);
       return [];
@@ -235,17 +231,13 @@ export class NotificationService {
     try {
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) return;
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'Beermatik Test',
-          body: 'Bu bir test bildirimidir! 🍺',
-          sound: 'default',
-        },
-        trigger: { 
-          type: SchedulableTriggerInputTypes.TIME_INTERVAL,
-          seconds: 2 
-        },
+      ensurePushConfigured();
+      PushNotification.localNotification({
+        channelId: 'beermatik-reminders',
+        title: 'Beermatik Test',
+        message: 'Bu bir test bildirimidir! 🍺',
+        playSound: true,
+        soundName: 'default',
       });
     } catch (error) {
       console.error('Test bildirimi hatası:', error);

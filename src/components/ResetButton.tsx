@@ -9,7 +9,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { triggerMediumHaptic } from '../utils/helpers';
 
 interface ResetButtonProps {
   onReset: () => void;
@@ -24,7 +24,7 @@ export const ResetButton: React.FC<ResetButtonProps> = ({
 
   const handleResetPress = async () => {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await triggerMediumHaptic();
       setShowModal(true);
     } catch (error) {
       console.error('Haptic feedback hatası:', error);
@@ -34,7 +34,7 @@ export const ResetButton: React.FC<ResetButtonProps> = ({
 
   const handleConfirmReset = async () => {
     try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await triggerMediumHaptic();
       onReset();
       setShowModal(false);
     } catch (error) {
@@ -46,7 +46,7 @@ export const ResetButton: React.FC<ResetButtonProps> = ({
 
   const handleCancelReset = async () => {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await triggerMediumHaptic();
       setShowModal(false);
     } catch (error) {
       console.error('Haptic feedback hatası:', error);

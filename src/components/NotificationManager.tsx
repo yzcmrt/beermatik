@@ -9,7 +9,7 @@ import {
   Switch,
   Alert,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { triggerMediumHaptic } from '../utils/helpers';
 import { NotificationService } from '../services/NotificationService';
 import { StorageService } from '../services/StorageService';
 
