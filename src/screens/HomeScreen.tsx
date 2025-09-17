@@ -53,7 +53,7 @@ export const HomeScreen: React.FC = () => {
     if (route.params?.refreshData) {
       loadSessionData();
       // Parametreyi temizle
-      navigation.setParams({ refreshData: undefined });
+      navigation.setParams({ refreshData: undefined } as any);
     }
   }, [route.params]);
 

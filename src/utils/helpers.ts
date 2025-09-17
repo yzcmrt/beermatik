@@ -1,27 +1,35 @@
-// Haptics abstraction to decouple from Expo
-export async function triggerMediumHaptic(): Promise<void> {
-  try {
-    // Lazy require to avoid platform-specific issues
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const RNHB = require('react-native-haptic-feedback');
-    const HapticFeedback = RNHB?.default ?? RNHB;
-    HapticFeedback.trigger('impactMedium', {
-      enableVibrateFallback: true,
-      ignoreAndroidSystemSettings: false,
-    });
-  } catch {
-    // Fallback: light vibration on Android
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Vibration, Platform } = require('react-native');
-    if (Platform.OS === 'android') {
-      Vibration.vibrate(50);
-    }
-  }
-}
 // Beermatik - Yardımcı Fonksiyonlar
 
 import moment from 'moment';
 import { BEER_SIZES } from './constants';
+
+/**
+ * Haptics abstraction to decouple from Expo
+ */
+export async function triggerMediumHaptic(): Promise<void> {
+  try {
+    // Async olarak çalıştır, UI'yi bloklamasın
+    setTimeout(() => {
+      // Lazy require to avoid platform-specific issues
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const RNHB = require('react-native-haptic-feedback');
+      const HapticFeedback = RNHB?.default ?? RNHB;
+      HapticFeedback.trigger('impactMedium', {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      });
+    }, 0);
+  } catch {
+    // Fallback: light vibration on Android
+    setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { Vibration, Platform } = require('react-native');
+      if (Platform.OS === 'android') {
+        Vibration.vibrate(50);
+      }
+    }, 0);
+  }
+}
 
 /**
  * Zamanı formatlar

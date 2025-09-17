@@ -38,7 +38,7 @@ export const AgeVerificationScreen: React.FC = () => {
     }
 
     try {
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await triggerMediumHaptic();
       navigation.navigate('Home');
     } catch (error) {
       console.error('Haptic feedback hatası:', error);
@@ -48,7 +48,7 @@ export const AgeVerificationScreen: React.FC = () => {
 
   const handleDecline = async () => {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await triggerMediumHaptic();
       Alert.alert(
         'Uygulama Kapatılacak',
         '18 yaşından küçük bireyler bu uygulamayı kullanamaz. Uygulama kapatılacaktır.',
@@ -69,7 +69,7 @@ export const AgeVerificationScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
       <ScrollView 
         style={styles.scrollView}
@@ -149,7 +149,7 @@ export const AgeVerificationScreen: React.FC = () => {
             style={styles.checkboxRow}
             onPress={() => {
               setHasReadTerms(!hasReadTerms);
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              triggerMediumHaptic();
             }}
           >
             <View style={[styles.checkbox, hasReadTerms && styles.checkboxChecked]}>
@@ -164,7 +164,7 @@ export const AgeVerificationScreen: React.FC = () => {
             style={styles.checkboxRow}
             onPress={() => {
               setHasReadWarnings(!hasReadWarnings);
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              triggerMediumHaptic();
             }}
           >
             <View style={[styles.checkbox, hasReadWarnings && styles.checkboxChecked]}>

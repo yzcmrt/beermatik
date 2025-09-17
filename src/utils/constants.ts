@@ -20,7 +20,7 @@ export const NOTIFICATION_MESSAGES = [
 ] as const;
 
 export const NOTIFICATION_TIMING = {
-  FIRST_BEER_DELAY: 30, // dakika
+  FIRST_BEER_DELAY: 15, // dakika - 15 dakika sonra ilk bildirim
   MAX_INTERVAL: 120, // maksimum 2 saat
   MIN_INTERVAL: 15, // minimum 15 dakika
 } as const;

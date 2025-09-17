@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { StatusBar, View, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { NotificationService } from './src/services/NotificationService';
 import { StorageService } from './src/services/StorageService';
@@ -27,10 +28,10 @@ export default function App() {
   };
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <AppNavigator />
       <StatusBar barStyle="light-content" backgroundColor="#000000" />
-    </View>
+    </GestureHandlerRootView>
   );
 }
 

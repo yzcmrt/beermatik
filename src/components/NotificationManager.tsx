@@ -53,7 +53,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
   const handleToggleNotification = async (enabled: boolean) => {
     try {
       setIsLoading(true);
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await triggerMediumHaptic();
       
       await notificationService.updateNotificationSettings(enabled);
       setNotificationEnabled(enabled);
@@ -86,7 +86,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
 
   const handleTestNotification = async () => {
     try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await triggerMediumHaptic();
       await notificationService.sendTestNotification();
       Alert.alert(
         'Test Bildirimi',

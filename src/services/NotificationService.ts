@@ -18,9 +18,19 @@ let pushConfigured = false;
 function ensurePushConfigured(): void {
   if (pushConfigured) return;
   PushNotification.configure({
-    onNotification: () => {},
+    onNotification: (notification) => {
+      console.log('Bildirim alındı:', notification);
+    },
     requestPermissions: false,
     popInitialNotification: true,
+    // iOS için arka plan bildirimleri
+    permissions: {
+      alert: true,
+      badge: true,
+      sound: true,
+    },
+    // Arka plan bildirimleri için
+    senderID: 'beermatik-app',
   });
   pushConfigured = true;
 }
@@ -57,6 +67,7 @@ export class NotificationService {
   public async requestPermissions(): Promise<boolean> {
     try {
       ensurePushConfigured();
+      
       if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
@@ -75,7 +86,13 @@ export class NotificationService {
           () => {}
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } else if (Platform.OS === 'ios') {
+        // iOS için bildirim izni iste
+        const granted = await PushNotification.requestPermissions();
+        console.log('iOS bildirim izni:', granted);
+        return granted;
       }
+      
       return true;
     } catch (error) {
       console.error('Bildirim izni hatası:', error);
@@ -113,7 +130,10 @@ export class NotificationService {
       if (session.beerCount === 1) {
         // İlk bira - bildirim sistemini başlat
         this.firstBeerTime = session.lastBeerTime;
-        await this.startNotificationSystem();
+        // Async olarak başlat, UI'yi bloklamasın
+        setTimeout(() => {
+          this.startNotificationSystem();
+        }, 100);
       } else if (session.beerCount > 1) {
         // Sonraki biralar - adaptif aralık hesapla
         if (this.firstBeerTime) {
@@ -124,9 +144,12 @@ export class NotificationService {
           this.notificationInterval = calculateNotificationInterval(averageInterval);
         }
         
-        // Mevcut bildirimleri iptal et ve yenisini planla
-        await this.cancelAllNotifications();
-        await this.scheduleNextNotification();
+        // Async olarak güncelle, UI'yi bloklamasın
+        setTimeout(() => {
+          this.cancelAllNotifications().then(() => {
+            this.scheduleNextNotification();
+          });
+        }, 100);
       }
     } catch (error) {
       console.error('Bira ekleme bildirim hatası:', error);
@@ -139,34 +162,59 @@ export class NotificationService {
   private async scheduleNextNotification(): Promise<void> {
     if (!this.firstBeerTime) return;
 
-    const now = getCurrentTimestamp();
-    const nextNotificationTime = now + (this.notificationInterval * 60 * 1000);
-    
-    const notificationId = `beermatik_${nextNotificationTime}`;
-    const message = getRandomNotificationMessage();
-    
-    const notificationData: NotificationData = {
-      id: notificationId,
-      title: 'Beermatik',
-      body: message,
-      scheduledTime: nextNotificationTime,
-      isActive: true,
-    };
+    try {
+      const now = getCurrentTimestamp();
+      const nextNotificationTime = now + (this.notificationInterval * 60 * 1000);
+      
+      const notificationId = `beermatik_${nextNotificationTime}`;
+      const message = getRandomNotificationMessage();
+      
+      const notificationData: NotificationData = {
+        id: notificationId,
+        title: 'Beermatik',
+        body: message,
+        scheduledTime: nextNotificationTime,
+        isActive: true,
+      };
 
-    this.scheduledNotifications.set(notificationId, notificationData);
+      this.scheduledNotifications.set(notificationId, notificationData);
 
-    PushNotification.localNotificationSchedule({
-      channelId: 'beermatik-reminders',
-      title: notificationData.title,
-      message: notificationData.body,
-      allowWhileIdle: true,
-      playSound: true,
-      soundName: 'default',
-      date: new Date(nextNotificationTime),
-      userInfo: { type: 'beer_reminder' },
-    });
+      // Android için optimize edilmiş bildirim ayarları
+      const notificationConfig: any = {
+        channelId: 'beermatik-reminders',
+        title: notificationData.title,
+        message: notificationData.body,
+        allowWhileIdle: true,
+        exact: true,
+        playSound: true,
+        soundName: 'default',
+        date: new Date(nextNotificationTime),
+        userInfo: { 
+          type: 'beer_reminder',
+          id: notificationId,
+          scheduledTime: nextNotificationTime
+        },
+      };
 
-    console.log(`Bildirim planlandı: ${new Date(nextNotificationTime).toLocaleString()}`);
+      // Platform-specific ayarlar
+      if (Platform.OS === 'android') {
+        notificationConfig.priority = 'high';
+        notificationConfig.visibility = 'public';
+        notificationConfig.importance = 'high';
+      } else if (Platform.OS === 'ios') {
+        notificationConfig.repeatType = 'time';
+        notificationConfig.repeatTime = 1;
+        notificationConfig.number = 1;
+      }
+
+      // Yeni bildirimi planla
+      PushNotification.localNotificationSchedule(notificationConfig);
+
+      console.log(`Bildirim planlandı: ${new Date(nextNotificationTime).toLocaleString()}`);
+      console.log(`Bildirim mesajı: ${message}`);
+    } catch (error) {
+      console.error('Bildirim planlama hatası:', error);
+    }
   }
 
   /**
@@ -230,15 +278,42 @@ export class NotificationService {
   public async sendTestNotification(): Promise<void> {
     try {
       const hasPermission = await this.requestPermissions();
-      if (!hasPermission) return;
+      if (!hasPermission) {
+        console.log('Bildirim izni yok!');
+        return;
+      }
+      
       ensurePushConfigured();
+      
+      // Hemen test bildirimi gönder
       PushNotification.localNotification({
         channelId: 'beermatik-reminders',
         title: 'Beermatik Test',
         message: 'Bu bir test bildirimidir! 🍺',
         playSound: true,
         soundName: 'default',
+        userInfo: { type: 'test' },
+        priority: 'high',
+        visibility: 'public',
+        importance: 'high',
       });
+      
+      // 5 saniye sonra gelecek bildirimi de planla
+      const futureTime = new Date(Date.now() + 5000);
+      PushNotification.localNotificationSchedule({
+        channelId: 'beermatik-reminders',
+        title: 'Beermatik Hatırlatma',
+        message: '2. biranı içtin mi? 🍺',
+        playSound: true,
+        soundName: 'default',
+        date: futureTime,
+        userInfo: { type: 'scheduled_test' },
+        priority: 'high',
+        visibility: 'public',
+        importance: 'high',
+      });
+      
+      console.log('Test bildirimi gönderildi!');
     } catch (error) {
       console.error('Test bildirimi hatası:', error);
     }

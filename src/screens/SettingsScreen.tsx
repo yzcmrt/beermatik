@@ -162,7 +162,7 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={globalStyles.safeArea}>
-      <StatusBar style="light" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
       <ScrollView style={globalStyles.container}>
         <View style={styles.header}>
