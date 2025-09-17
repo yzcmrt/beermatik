@@ -15,12 +15,14 @@ import { StorageService } from '../services/StorageService';
 
 interface NotificationManagerProps {
   onNotificationToggle?: (enabled: boolean) => void;
+  initialNotificationEnabled?: boolean;
 }
 
 export const NotificationManager: React.FC<NotificationManagerProps> = ({
   onNotificationToggle,
+  initialNotificationEnabled = false,
 }) => {
-  const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(initialNotificationEnabled);
   const [isLoading, setIsLoading] = useState(false);
   const [nextNotificationTime, setNextNotificationTime] = useState<number | null>(null);
 
@@ -30,6 +32,11 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
   useEffect(() => {
     loadNotificationSettings();
   }, []);
+
+  // Initial notification state'i güncelle
+  useEffect(() => {
+    setNotificationEnabled(initialNotificationEnabled);
+  }, [initialNotificationEnabled]);
 
   const loadNotificationSettings = async () => {
     try {

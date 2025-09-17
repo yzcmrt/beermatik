@@ -3,6 +3,7 @@
     "name": "Beermatik",
     "slug": "beermatik",
     "version": "1.0.0",
+    "description": "Bira tüketimini takip edin ve unutmayın. Sorumlu içki içme ile birlikte.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -18,7 +19,14 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "Beermatik, bira içmeyi unutmamanız için hatırlatma bildirimleri gönderir.",
-        "UIBackgroundModes": ["background-processing", "background-fetch"]
+        "UIBackgroundModes": ["background-processing", "background-fetch"],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        }
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -34,7 +42,10 @@
         "android.permission.VIBRATE",
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.WAKE_LOCK"
-      ]
+      ],
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

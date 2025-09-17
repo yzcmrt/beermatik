@@ -5,9 +5,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { HomeScreen } from '../screens/HomeScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { AgeVerificationScreen } from '../screens/AgeVerificationScreen';
 
 export type RootStackParamList = {
-  Home: undefined;
+  AgeVerification: undefined;
+  Home: { refreshData?: boolean } | undefined;
   Settings: undefined;
 };
 
@@ -17,7 +19,7 @@ export const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home"
+        initialRouteName="AgeVerification"
         screenOptions={{
           headerStyle: {
             backgroundColor: '#000000',
@@ -34,6 +36,13 @@ export const AppNavigator: React.FC = () => {
           },
         }}
       >
+        <Stack.Screen
+          name="AgeVerification"
+          component={AgeVerificationScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
         <Stack.Screen
           name="Home"
           component={HomeScreen}

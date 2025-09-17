@@ -12,11 +12,17 @@ import {
   Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { StorageService } from '../services/StorageService';
 import { NotificationService } from '../services/NotificationService';
 import { globalStyles } from '../styles/globalStyles';
 
+type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Settings'>;
+
 export const SettingsScreen: React.FC = () => {
+  const navigation = useNavigation<SettingsScreenNavigationProp>();
   const [settings, setSettings] = useState({
     notificationEnabled: false,
     hapticEnabled: true,
@@ -96,9 +102,18 @@ export const SettingsScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Tüm verileri temizle
               await storageService.clearAllData();
               await notificationService.stopNotificationSystem();
-              Alert.alert('Başarılı', 'Tüm veriler silindi.');
+              
+              // Ana ekrana geri dön ve refresh et
+              navigation.navigate('Home', { refreshData: true });
+              
+              Alert.alert(
+                'Başarılı', 
+                'Tüm veriler silindi. Ana ekrana yönlendiriliyorsunuz.',
+                [{ text: 'Tamam' }]
+              );
             } catch (error) {
               console.error('Veri temizleme hatası:', error);
               Alert.alert('Hata', 'Veriler silinirken bir hata oluştu.');

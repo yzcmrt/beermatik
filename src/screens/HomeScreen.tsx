@@ -11,19 +11,24 @@ import {
   StatusBar,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { BeerCounter } from '../components/BeerCounter';
 import { SizeSelector } from '../components/SizeSelector';
 import { ResetButton } from '../components/ResetButton';
 import { NotificationManager } from '../components/NotificationManager';
+import { ResponsibleDrinkingWarning } from '../components/ResponsibleDrinkingWarning';
 import { StorageService, BeerSession } from '../services/StorageService';
 import { NotificationService } from '../services/NotificationService';
 import { calculateVolume } from '../utils/helpers';
 import { BEER_SIZES } from '../utils/constants';
 import { globalStyles } from '../styles/globalStyles';
 
+type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
+
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute<HomeScreenRouteProp>();
   const [session, setSession] = useState<BeerSession>({
     beerCount: 0,
     totalVolume: 0,
@@ -42,6 +47,15 @@ export const HomeScreen: React.FC = () => {
   useEffect(() => {
     loadSessionData();
   }, []);
+
+  // Route parametrelerini dinle (ayarlardan veri temizleme sonrası)
+  useEffect(() => {
+    if (route.params?.refreshData) {
+      loadSessionData();
+      // Parametreyi temizle
+      navigation.setParams({ refreshData: undefined });
+    }
+  }, [route.params]);
 
   const loadSessionData = async () => {
     try {
@@ -99,12 +113,23 @@ export const HomeScreen: React.FC = () => {
     }
   }, [storageService, notificationService]);
 
-  const handleNotificationToggle = useCallback((enabled: boolean) => {
-    setSession(prev => ({
-      ...prev,
-      notificationEnabled: enabled,
-    }));
-  }, []);
+  const handleNotificationToggle = useCallback(async (enabled: boolean) => {
+    try {
+      // Storage'a kaydet
+      await storageService.updateNotificationEnabled(enabled);
+      
+      // Local state'i güncelle
+      setSession(prev => ({
+        ...prev,
+        notificationEnabled: enabled,
+      }));
+      
+      // Notification service'i güncelle
+      await notificationService.updateNotificationSettings(enabled);
+    } catch (error) {
+      console.error('Bildirim ayarı güncelleme hatası:', error);
+    }
+  }, [storageService, notificationService]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -174,6 +199,7 @@ export const HomeScreen: React.FC = () => {
         {/* Bildirim Yöneticisi */}
         <NotificationManager
           onNotificationToggle={handleNotificationToggle}
+          initialNotificationEnabled={session.notificationEnabled}
         />
 
         {/* Sıfırlama Butonu */}
@@ -187,8 +213,17 @@ export const HomeScreen: React.FC = () => {
           <Text style={styles.footerText}>
             Beermatik ile bira tüketimini takip et! 🍺
           </Text>
+          <Text style={styles.responsibleText}>
+            Sorumlu içki içme önemlidir 🍺
+          </Text>
         </View>
       </ScrollView>
+
+      {/* Sorumlu İçki İçme Uyarıları */}
+      <ResponsibleDrinkingWarning
+        beerCount={session.beerCount}
+        showAfterBeerCount={3}
+      />
     </SafeAreaView>
   );
 };
@@ -241,5 +276,13 @@ const styles = StyleSheet.create({
     color: '#CCCCCC',
     textAlign: 'center',
     fontStyle: 'italic',
+    marginBottom: 5,
+  },
+  
+  responsibleText: {
+    fontSize: 12,
+    color: '#FFA500',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
