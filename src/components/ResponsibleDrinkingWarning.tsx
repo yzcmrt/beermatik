@@ -58,11 +58,9 @@ export const ResponsibleDrinkingWarning: React.FC<ResponsibleDrinkingWarningProp
   ];
 
   useEffect(() => {
-    if (beerCount >= showAfterBeerCount) {
+    if (beerCount === showAfterBeerCount) {
       setIsVisible(true);
       showWarning();
-    } else {
-      setIsVisible(false);
     }
   }, [beerCount, showAfterBeerCount]);
 
@@ -105,6 +103,8 @@ export const ResponsibleDrinkingWarning: React.FC<ResponsibleDrinkingWarningProp
     ]).start(() => {
       // Sonraki uyarıya geç
       setCurrentWarning((prev) => (prev + 1) % warnings.length);
+      // Overlay'i tamamen kapat ki dokunuşları engellemesin
+      setIsVisible(false);
     });
   };
 
@@ -139,6 +139,7 @@ export const ResponsibleDrinkingWarning: React.FC<ResponsibleDrinkingWarningProp
           transform: [{ translateY: slideAnim }],
         },
       ]}
+      pointerEvents={isVisible ? 'auto' : 'none'}
     >
       <View style={styles.warningCard}>
         <View style={styles.header}>
