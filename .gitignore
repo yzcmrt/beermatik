@@ -36,6 +36,23 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# generated native folders
-/ios
-/android
+# iOS (keep sources, ignore generated/build)
+/ios/Pods/
+/ios/build/
+/ios/*.xcworkspace/xcuserdata/
+/ios/*.xcodeproj/xcuserdata/
+/ios/**/*.mode1v3
+/ios/**/*.mode2v3
+/ios/**/*.perspectivev3
+/ios/**/*.xcuserstate
+/ios/.DS_Store
+/ios/Beermatik.xcworkspace/xcuserdata/
+
+# Android (keep sources, ignore generated/build)
+/android/.gradle/
+/android/.idea/
+/android/local.properties
+/android/captures/
+/android/build/
+/android/app/build/
+/android/*.iml

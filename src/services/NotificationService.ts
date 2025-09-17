@@ -101,6 +101,40 @@ export class NotificationService {
   }
 
   /**
+   * 2 saniye sonra tek seferlik teşvik bildirimi planlar
+   */
+  private scheduleNudgeAfter2Seconds(customMessage?: string): void {
+    ensurePushConfigured();
+    const messagePool = [
+      '2. biranı içtin mi? 🍺',
+      'Biranı unutma! Sayacını güncelle 🍻',
+      'Beermatik hatırlatıyor: Bira zamanı! ⏰',
+    ];
+    const message = customMessage ?? messagePool[Math.floor(Math.random() * messagePool.length)];
+
+    const in2Sec = new Date(Date.now() + 2000);
+    const config: any = {
+      channelId: 'beermatik-reminders',
+      title: 'Beermatik',
+      message,
+      playSound: true,
+      soundName: 'default',
+      date: in2Sec,
+      allowWhileIdle: true,
+      exact: true,
+      userInfo: { type: 'nudge_after_2s' },
+    };
+
+    if (Platform.OS === 'android') {
+      config.priority = 'high';
+      config.visibility = 'public';
+      config.importance = 'high';
+    }
+
+    PushNotification.localNotificationSchedule(config);
+  }
+
+  /**
    * İlk bira sonrası bildirim sistemini başlatır
    */
   public async startNotificationSystem(): Promise<void> {
@@ -283,35 +317,8 @@ export class NotificationService {
         return;
       }
       
-      ensurePushConfigured();
-      
-      // Hemen test bildirimi gönder
-      PushNotification.localNotification({
-        channelId: 'beermatik-reminders',
-        title: 'Beermatik Test',
-        message: 'Bu bir test bildirimidir! 🍺',
-        playSound: true,
-        soundName: 'default',
-        userInfo: { type: 'test' },
-        priority: 'high',
-        visibility: 'public',
-        importance: 'high',
-      });
-      
-      // 5 saniye sonra gelecek bildirimi de planla
-      const futureTime = new Date(Date.now() + 5000);
-      PushNotification.localNotificationSchedule({
-        channelId: 'beermatik-reminders',
-        title: 'Beermatik Hatırlatma',
-        message: '2. biranı içtin mi? 🍺',
-        playSound: true,
-        soundName: 'default',
-        date: futureTime,
-        userInfo: { type: 'scheduled_test' },
-        priority: 'high',
-        visibility: 'public',
-        importance: 'high',
-      });
+      // Yalnızca 2 saniye sonra tek bir nudge bildirimi
+      this.scheduleNudgeAfter2Seconds();
       
       console.log('Test bildirimi gönderildi!');
     } catch (error) {
@@ -328,6 +335,8 @@ export class NotificationService {
       
       if (enabled) {
         await this.startNotificationSystem();
+        // Hatırlatma açıldığında 2 sn sonra teşvik bildirimi
+        this.scheduleNudgeAfter2Seconds();
       } else {
         await this.stopNotificationSystem();
       }
