@@ -1,55 +1,59 @@
 #!/bin/bash
 
-# Beermatik Android Build Script (EAS Build)
+# Beermatik Android Build Script (Native)
 
-echo "🍺 Beermatik Android Build Başlatılıyor..."
+set -euo pipefail
 
-# Renk kodları
-RED='\033[0;31m'
-GREEN='\033[0;32m'
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ANDROID_DIR="$ROOT_DIR/android"
+
 YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Hata kontrolü
-set -e
+printf "${BLUE}🍺 Beermatik Android Build Başlatılıyor...${NC}\n"
 
-echo -e "${YELLOW}1. Bağımlılıklar kontrol ediliyor...${NC}"
-npm install
+printf "${YELLOW}1. TypeScript kontrol ediliyor...${NC}\n"
+(cd "$ROOT_DIR" && npx tsc --noEmit)
 
-echo -e "${YELLOW}2. TypeScript kontrol ediliyor...${NC}"
-npx tsc --noEmit
+printf "${YELLOW}2. Lint kontrolü (opsiyonel) için: npx eslint src --ext .ts,.tsx${NC}\n"
 
-echo -e "${BLUE}3. EAS Build ile Android build başlatılıyor...${NC}"
-echo -e "${YELLOW}   Not: Expo Go artık push notification desteklemiyor!${NC}"
-echo -e "${YELLOW}   Development Build kullanmanız gerekiyor.${NC}"
+printf "${YELLOW}3. Build tipini seçin:${NC}\n"
+printf "   1) assembleDebug\n"
+printf "   2) assembleRelease\n"
+printf "   3) bundleRelease (AAB)\n"
+read -rp "Seçiminiz (1-3): " BUILD_CHOICE
 
-# Build tipini seç
-echo -e "${BLUE}Build tipini seçin:${NC}"
-echo "1) Development Build (Önerilen)"
-echo "2) Preview Build (APK)"
-echo "3) Production Build (AAB)"
+case "$BUILD_CHOICE" in
+  1)
+    GRADLE_TASK="assembleDebug"
+    ;;
+  2)
+    GRADLE_TASK="assembleRelease"
+    ;;
+  3)
+    GRADLE_TASK="bundleRelease"
+    ;;
+  *)
+    printf "${RED}Geçersiz seçim, varsayılan olarak assembleDebug çalıştırılıyor.${NC}\n"
+    GRADLE_TASK="assembleDebug"
+    ;;
+ esac
 
-read -p "Seçiminiz (1-3): " choice
+printf "${YELLOW}4. Gradle build başlatılıyor: ${GRADLE_TASK}${NC}\n"
+(cd "$ANDROID_DIR" && ./gradlew clean "$GRADLE_TASK")
 
-case $choice in
-    1)
-        echo -e "${YELLOW}Development Build başlatılıyor...${NC}"
-        eas build --profile development --platform android
-        ;;
-    2)
-        echo -e "${YELLOW}Preview Build başlatılıyor...${NC}"
-        eas build --profile preview --platform android
-        ;;
-    3)
-        echo -e "${YELLOW}Production Build başlatılıyor...${NC}"
-        eas build --profile production --platform android
-        ;;
-    *)
-        echo -e "${RED}Geçersiz seçim! Development Build kullanılıyor...${NC}"
-        eas build --profile development --platform android
-        ;;
-esac
-
-echo -e "${GREEN}✅ Android build tamamlandı!${NC}"
-echo -e "${GREEN}Build detayları: https://expo.dev/accounts/[username]/projects/beermatik/builds${NC}"
+printf "${GREEN}✅ Android build tamamlandı!${NC}\n"
+case "$GRADLE_TASK" in
+  assembleRelease)
+    printf "${GREEN}APK: android/app/build/outputs/apk/release/app-release.apk${NC}\n"
+    ;;
+  bundleRelease)
+    printf "${GREEN}AAB: android/app/build/outputs/bundle/release/app-release.aab${NC}\n"
+    ;;
+  *)
+    printf "${GREEN}APK: android/app/build/outputs/apk/debug/app-debug.apk${NC}\n"
+    ;;
+ esac

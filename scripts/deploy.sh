@@ -14,26 +14,28 @@ NC='\033[0m' # No Color
 # Hata kontrolü
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Platform seçimi
 echo -e "${BLUE}Hangi platform için build yapmak istiyorsunuz?${NC}"
-echo "1) Android APK"
-echo "2) iOS IPA"
+echo "1) Android"
+echo "2) iOS"
 echo "3) Her ikisi"
 read -p "Seçiminiz (1-3): " choice
 
 case $choice in
     1)
-        echo -e "${YELLOW}Android APK build başlatılıyor...${NC}"
-        ./scripts/build-android.sh
+        echo -e "${YELLOW}Android build başlatılıyor...${NC}"
+        "$SCRIPT_DIR/build-android.sh"
         ;;
     2)
-        echo -e "${YELLOW}iOS IPA build başlatılıyor...${NC}"
-        ./scripts/build-ios.sh
+        echo -e "${YELLOW}iOS build başlatılıyor...${NC}"
+        "$SCRIPT_DIR/build-ios.sh"
         ;;
     3)
         echo -e "${YELLOW}Her iki platform için build başlatılıyor...${NC}"
-        ./scripts/build-android.sh
-        ./scripts/build-ios.sh
+        "$SCRIPT_DIR/build-android.sh"
+        "$SCRIPT_DIR/build-ios.sh"
         ;;
     *)
         echo -e "${RED}Geçersiz seçim!${NC}"
@@ -71,15 +73,14 @@ fi
 
 echo -e "${GREEN}🎉 Beermatik deploy hazır!${NC}"
 echo -e "${BLUE}Store'lara yüklemek için:${NC}"
-echo "1. App Store Connect'e gidin"
-echo "2. Google Play Console'a gidin"
-echo "3. Metadata dosyalarını kullanın"
-echo "4. Build dosyalarını yükleyin"
+echo "1. Google Play Console ve App Store Connect'te kayıt açın"
+echo "2. store-metadata içeriğini mağaza açıklamalarına taşıyın"
+echo "3. Android Gradle çıktısını (APK/AAB) ve iOS archive/IPA dosyalarını yükleyin"
 
 echo -e "${YELLOW}Build dosyaları:${NC}"
-if [ -d "android/app/build/outputs/apk/release" ]; then
-    echo "Android APK: android/app/build/outputs/apk/release/app-release.apk"
+if [ -d "android/app/build/outputs" ]; then
+    find android/app/build/outputs -maxdepth 2 -type f \( -name "*.apk" -o -name "*.aab" \) -print
 fi
 if [ -d "ios/build" ]; then
-    echo "iOS IPA: Expo dashboard'da hazır"
+    find ios/build -maxdepth 2 -type f \( -name "*.xcarchive" -o -name "*.ipa" \) -print
 fi

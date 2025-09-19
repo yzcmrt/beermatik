@@ -31,17 +31,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Beermatik, bira tüketim takibiniz için hatırlatma bildirimleri göndermek istiyor.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>background-processing</string>
-		<string>remote-notification</string>
-	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

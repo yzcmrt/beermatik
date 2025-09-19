@@ -49,6 +49,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/arm64-v8a/lottiereactnative_autolinked_build/cmake_install.cmake")
   include("/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/arm64-v8a/rngesturehandler_codegen_autolinked_build/cmake_install.cmake")
   include("/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/arm64-v8a/RNHapticFeedbackSpec_autolinked_build/cmake_install.cmake")
+  include("/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/arm64-v8a/rnscreens_autolinked_build/cmake_install.cmake")
   include("/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/arm64-v8a/safeareacontext_autolinked_build/cmake_install.cmake")
   include("/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/arm64-v8a/RNVectorIconsSpec_autolinked_build/cmake_install.cmake")
 

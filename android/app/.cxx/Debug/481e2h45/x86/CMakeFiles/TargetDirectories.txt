@@ -16,6 +16,9 @@
 /Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/RNHapticFeedbackSpec_autolinked_build/CMakeFiles/react_codegen_RNHapticFeedbackSpec.dir
 /Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/RNHapticFeedbackSpec_autolinked_build/CMakeFiles/edit_cache.dir
 /Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/RNHapticFeedbackSpec_autolinked_build/CMakeFiles/rebuild_cache.dir
+/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/rnscreens_autolinked_build/CMakeFiles/react_codegen_rnscreens.dir
+/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/rnscreens_autolinked_build/CMakeFiles/edit_cache.dir
+/Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/rnscreens_autolinked_build/CMakeFiles/rebuild_cache.dir
 /Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/safeareacontext_autolinked_build/CMakeFiles/react_codegen_safeareacontext.dir
 /Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/safeareacontext_autolinked_build/CMakeFiles/edit_cache.dir
 /Users/mert/beermatik-1/android/app/.cxx/Debug/481e2h45/x86/safeareacontext_autolinked_build/CMakeFiles/rebuild_cache.dir

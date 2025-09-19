@@ -10,8 +10,7 @@
     "tracker",
     "alcohol",
     "drinking",
-    "react-native",
-    "expo"
+    "react-native"
   ],
   "scripts": {
     "start": "react-native start",
@@ -20,8 +19,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint src/ --ext .ts,.tsx",
-    "lint:fix": "eslint src/ --ext .ts,.tsx --fix",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "deploy": "./scripts/deploy.sh"
   },
@@ -40,15 +39,37 @@
     "react-native-haptic-feedback": "^2.3.3",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-push-notification": "^8.1.1",
+    "react-native-screens": "^4.3.0",
     "react-native-safe-area-context": "^5.6.1",
     "react-native-vector-icons": "^10.3.0"
   },
   "devDependencies": {
+    "@react-native-community/eslint-config": "^3.2.0",
+    "@react-native/babel-preset": "^0.81.1",
     "@react-native/metro-config": "^0.81.1",
+    "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
+    "@typescript-eslint/eslint-plugin": "^8.12.1",
+    "@typescript-eslint/parser": "^8.12.1",
+    "babel-jest": "^30.0.0",
+    "eslint": "^9.13.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "jest": "^30.0.0",
+    "metro-react-native-babel-preset": "^0.77.0",
+    "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
+  },
+  "jest": {
+    "preset": "react-native",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-native|@react-native|@react-navigation|@react-native-async-storage|@react-native-community|@testing-library|react-native-.*)/)"
+    ]
   },
   "private": true
 }

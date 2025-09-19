@@ -230,3 +230,23 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 ---
 
 **Beermatik ile bira tüketimini takip et, unutma! 🍺**
+
+---
+
+## 🚀 Yayın Öncesi Kontrol Listesi
+
+- `package.json`, `android/app/build.gradle` ve Xcode proje ayarlarında sürüm numaralarını her mağaza yayınında artırın.
+- `android/app/src/main/AndroidManifest.xml` içerisindeki izinler yalnızca bildirimler için gerekli olanlarla sınırlandırıldı; ek izin ihtiyacınız olursa Play Console gerekçelerini güncelleyerek ekleyin.
+- iOS için `ios/Beermatik/Beermatik.entitlements` eklendi. Xcode'da **Signing & Capabilities → + Capability → Push Notifications** adımını uygulayıp oluşturulan entitlements dosyasını seçin.
+- Android release imzası için `android/keystore/README.md` talimatlarını izleyerek kendi keystore’unuzu oluşturun ve Gradle özelliklerine ekleyin.
+- Mağaza ikon ve ekran görüntüsü yer tutucuları `store-assets/` altında. Gerçek görselleri yükleme öncesi bu dizine koyun.
+- CI/yerel dağıtımda:
+  ```bash
+  npm ci
+  cd ios && pod install && cd ..
+  npm run lint
+  npm test
+  ./scripts/build-android.sh   # Android build
+  ./scripts/build-ios.sh       # iOS build
+  ```
+- App Store Connect ve Google Play Console gizlilik formlarında yalnızca yerel bildirim verilerinin işlendiğini belirtin.

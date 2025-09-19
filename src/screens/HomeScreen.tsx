@@ -20,7 +20,6 @@ import { NotificationManager } from '../components/NotificationManager';
 import { ResponsibleDrinkingWarning } from '../components/ResponsibleDrinkingWarning';
 import { StorageService, BeerSession } from '../services/StorageService';
 import { NotificationService } from '../services/NotificationService';
-import { calculateVolume } from '../utils/helpers';
 import { BEER_SIZES } from '../utils/constants';
 import { globalStyles } from '../styles/globalStyles';
 
@@ -37,6 +36,8 @@ export const HomeScreen: React.FC = () => {
     selectedSize: '33cl',
     notificationEnabled: false,
     beerEntries: [],
+    notificationInterval: null,
+    nextNotificationTime: null,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -113,23 +114,14 @@ export const HomeScreen: React.FC = () => {
     }
   }, [storageService, notificationService]);
 
-  const handleNotificationToggle = useCallback(async (enabled: boolean) => {
+  const handleNotificationToggle = useCallback(async (_enabled?: boolean) => {
     try {
-      // Storage'a kaydet
-      await storageService.updateNotificationEnabled(enabled);
-      
-      // Local state'i güncelle
-      setSession(prev => ({
-        ...prev,
-        notificationEnabled: enabled,
-      }));
-      
-      // Notification service'i güncelle
-      await notificationService.updateNotificationSettings(enabled);
+      const updatedSession = await storageService.loadSession();
+      setSession(updatedSession);
     } catch (error) {
       console.error('Bildirim ayarı güncelleme hatası:', error);
     }
-  }, [storageService, notificationService]);
+  }, [storageService]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

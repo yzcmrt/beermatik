@@ -25,6 +25,7 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
   const [notificationEnabled, setNotificationEnabled] = useState(initialNotificationEnabled);
   const [isLoading, setIsLoading] = useState(false);
   const [nextNotificationTime, setNextNotificationTime] = useState<number | null>(null);
+  const [notificationIntervalMinutes, setNotificationIntervalMinutes] = useState<number | null>(null);
 
   const notificationService = NotificationService.getInstance();
   const storageService = StorageService.getInstance();
@@ -42,9 +43,15 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
     try {
       const session = await storageService.loadSession();
       setNotificationEnabled(session.notificationEnabled);
+      setNotificationIntervalMinutes(
+        session.notificationInterval ? Math.round(session.notificationInterval / (60 * 1000)) : null
+      );
       
       const stats = notificationService.getNotificationStats();
       setNextNotificationTime(stats.nextNotificationTime);
+      setNotificationIntervalMinutes(
+        stats.interval ? Math.round(stats.interval / (60 * 1000)) : null
+      );
     } catch (error) {
       console.error('Bildirim ayarları yükleme hatası:', error);
     }
@@ -56,26 +63,43 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
       await triggerMediumHaptic();
       
       await notificationService.updateNotificationSettings(enabled);
-      setNotificationEnabled(enabled);
-      
-      if (enabled) {
-        const stats = notificationService.getNotificationStats();
-        setNextNotificationTime(stats.nextNotificationTime);
+      const latestSession = await storageService.loadSession();
+      setNotificationEnabled(latestSession.notificationEnabled);
+      setNextNotificationTime(latestSession.nextNotificationTime ?? null);
+      setNotificationIntervalMinutes(
+        latestSession.notificationInterval
+          ? Math.round(latestSession.notificationInterval / (60 * 1000))
+          : null
+      );
+
+      if (enabled && latestSession.notificationEnabled) {
+        const intervalText = formatInterval(
+          latestSession.notificationInterval
+            ? Math.round(latestSession.notificationInterval / (60 * 1000))
+            : null
+        );
         Alert.alert(
           'Bildirimler Açıldı',
-          'Beermatik artık sizi bira içmeye hatırlatacak! 🍺',
+          `${intervalText} sonra hatırlatacağız. 🍺`,
           [{ text: 'Tamam' }]
         );
-      } else {
-        setNextNotificationTime(null);
-        Alert.alert(
-          'Bildirimler Kapatıldı',
-          'Artık hatırlatma bildirimleri almayacaksınız.',
-          [{ text: 'Tamam' }]
-        );
+      } else if (!latestSession.notificationEnabled) {
+        if (enabled) {
+          Alert.alert(
+            'İzin Gerekli',
+            'Bildirim gönderebilmek için sistem ayarlarından izin vermelisiniz.',
+            [{ text: 'Tamam' }]
+          );
+        } else {
+          Alert.alert(
+            'Bildirimler Kapatıldı',
+            'Artık hatırlatma bildirimleri almayacaksınız.',
+            [{ text: 'Tamam' }]
+          );
+        }
       }
-      
-      onNotificationToggle?.(enabled);
+
+      onNotificationToggle?.(latestSession.notificationEnabled);
     } catch (error) {
       console.error('Bildirim ayarı güncelleme hatası:', error);
       Alert.alert('Hata', 'Bildirim ayarları güncellenirken bir hata oluştu.');
@@ -113,13 +137,22 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
     if (hours > 0) {
       return `${hours}s ${minutes % 60}dk sonra`;
     }
-    return `${minutes}dk sonra`;
+      return `${minutes}dk sonra`;
+  };
+
+  const formatInterval = (interval: number | null): string => {
+    if (!interval) return 'Belirlenmedi';
+    if (interval < 60) return `${interval} dk`;
+    const hours = Math.floor(interval / 60);
+    const minutes = interval % 60;
+    if (minutes === 0) return `${hours} saat`;
+    return `${hours} saat ${minutes} dk`;
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bildirim Ayarları</Text>
-      
+
       <View style={styles.settingRow}>
         <View style={styles.settingInfo}>
           <Text style={styles.settingLabel}>Hatırlatma Bildirimleri</Text>
@@ -142,6 +175,8 @@ export const NotificationManager: React.FC<NotificationManagerProps> = ({
           <Text style={styles.infoValue}>
             {formatNextNotificationTime(nextNotificationTime)}
           </Text>
+          <Text style={styles.infoLabel}>Hatırlatma Aralığı:</Text>
+          <Text style={styles.infoValue}>{formatInterval(notificationIntervalMinutes)}</Text>
         </View>
       )}
 

@@ -1,7 +1,7 @@
 // Beermatik - Veri Kalıcılığı Servisi
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { STORAGE_KEYS } from '../utils/constants';
+import { NOTIFICATION_TIMING, STORAGE_KEYS } from '../utils/constants';
 
 export interface BeerEntry {
   id: string;
@@ -18,6 +18,8 @@ export interface BeerSession {
   selectedSize: string;
   notificationEnabled: boolean;
   beerEntries: BeerEntry[];
+  notificationInterval: number | null;
+  nextNotificationTime: number | null;
 }
 
 export class StorageService {
@@ -46,6 +48,8 @@ export class StorageService {
         selectedSize,
         notificationEnabled,
         beerEntries,
+        notificationInterval,
+        nextNotificationTime,
       ] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.BEER_COUNT),
         AsyncStorage.getItem(STORAGE_KEYS.TOTAL_VOLUME),
@@ -54,6 +58,8 @@ export class StorageService {
         AsyncStorage.getItem(STORAGE_KEYS.SELECTED_SIZE),
         AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_ENABLED),
         AsyncStorage.getItem(STORAGE_KEYS.BEER_ENTRIES),
+        AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATION_INTERVAL),
+        AsyncStorage.getItem(STORAGE_KEYS.NEXT_NOTIFICATION_TIME),
       ]);
 
       const parsedBeerEntries: BeerEntry[] = beerEntries ? JSON.parse(beerEntries) : [];
@@ -66,6 +72,8 @@ export class StorageService {
         selectedSize: selectedSize || '33cl',
         notificationEnabled: notificationEnabled === 'true',
         beerEntries: parsedBeerEntries,
+        notificationInterval: notificationInterval ? parseInt(notificationInterval, 10) : null,
+        nextNotificationTime: nextNotificationTime ? parseInt(nextNotificationTime, 10) : null,
       };
 
       this.cache = session;
@@ -90,21 +98,44 @@ export class StorageService {
 
       const currentEntries = this.cache.beerEntries || [];
       const updatedEntries = [...currentEntries, newBeerEntry];
-      
+
       const newCount = updatedEntries.length;
       const newTotalVolume = updatedEntries.reduce((sum, entry) => sum + entry.volume, 0);
 
-      await Promise.all([
+      const { intervalMs, nextNotificationTime } = this.calculateNextNotification(updatedEntries);
+
+      const tasks: Promise<void>[] = [
         AsyncStorage.setItem(STORAGE_KEYS.BEER_COUNT, newCount.toString()),
         AsyncStorage.setItem(STORAGE_KEYS.TOTAL_VOLUME, newTotalVolume.toString()),
         AsyncStorage.setItem(STORAGE_KEYS.BEER_ENTRIES, JSON.stringify(updatedEntries)),
         AsyncStorage.setItem(STORAGE_KEYS.LAST_BEER_TIME, newBeerEntry.timestamp.toString()),
-      ]);
+      ];
+
+      if (intervalMs === null) {
+        tasks.push(AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_INTERVAL));
+      } else {
+        tasks.push(AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_INTERVAL, intervalMs.toString()));
+      }
+
+      if (nextNotificationTime === null) {
+        tasks.push(AsyncStorage.removeItem(STORAGE_KEYS.NEXT_NOTIFICATION_TIME));
+      } else {
+        tasks.push(
+          AsyncStorage.setItem(
+            STORAGE_KEYS.NEXT_NOTIFICATION_TIME,
+            nextNotificationTime.toString()
+          )
+        );
+      }
+
+      await Promise.all(tasks);
 
       this.cache.beerCount = newCount;
       this.cache.totalVolume = newTotalVolume;
       this.cache.beerEntries = updatedEntries;
       this.cache.lastBeerTime = newBeerEntry.timestamp;
+      this.cache.notificationInterval = intervalMs;
+      this.cache.nextNotificationTime = nextNotificationTime;
     } catch (error) {
       console.error('Bira ekleme hatası:', error);
     }
@@ -182,6 +213,8 @@ export class StorageService {
         AsyncStorage.setItem(STORAGE_KEYS.SESSION_START_TIME, now.toString()),
         AsyncStorage.setItem(STORAGE_KEYS.LAST_BEER_TIME, '0'),
         AsyncStorage.setItem(STORAGE_KEYS.BEER_ENTRIES, JSON.stringify([])),
+        AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_INTERVAL),
+        AsyncStorage.removeItem(STORAGE_KEYS.NEXT_NOTIFICATION_TIME),
       ]);
 
       this.cache = {
@@ -191,6 +224,8 @@ export class StorageService {
         sessionStartTime: now,
         lastBeerTime: 0,
         beerEntries: [],
+        notificationInterval: null,
+        nextNotificationTime: null,
       };
     } catch (error) {
       console.error('Yeni oturum başlatma hatası:', error);
@@ -210,6 +245,8 @@ export class StorageService {
         STORAGE_KEYS.SELECTED_SIZE,
         STORAGE_KEYS.NOTIFICATION_ENABLED,
         STORAGE_KEYS.BEER_ENTRIES,
+        STORAGE_KEYS.NOTIFICATION_INTERVAL,
+        STORAGE_KEYS.NEXT_NOTIFICATION_TIME,
       ]);
 
       this.cache = {};
@@ -237,6 +274,8 @@ export class StorageService {
       selectedSize: '33cl',
       notificationEnabled: false,
       beerEntries: [],
+      notificationInterval: null,
+      nextNotificationTime: null,
     };
   }
 
@@ -267,6 +306,19 @@ export class StorageService {
         this.updateNotificationEnabled(session.notificationEnabled),
         AsyncStorage.setItem(STORAGE_KEYS.SESSION_START_TIME, session.sessionStartTime.toString()),
         AsyncStorage.setItem(STORAGE_KEYS.LAST_BEER_TIME, session.lastBeerTime.toString()),
+        AsyncStorage.setItem(STORAGE_KEYS.BEER_ENTRIES, JSON.stringify(session.beerEntries ?? [])),
+        session.notificationInterval !== null
+          ? AsyncStorage.setItem(
+              STORAGE_KEYS.NOTIFICATION_INTERVAL,
+              session.notificationInterval.toString()
+            )
+          : AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_INTERVAL),
+        session.nextNotificationTime !== null
+          ? AsyncStorage.setItem(
+              STORAGE_KEYS.NEXT_NOTIFICATION_TIME,
+              session.nextNotificationTime.toString()
+            )
+          : AsyncStorage.removeItem(STORAGE_KEYS.NEXT_NOTIFICATION_TIME),
       ]);
 
       return true;
@@ -274,5 +326,66 @@ export class StorageService {
       console.error('Veri içe aktarma hatası:', error);
       return false;
     }
+  }
+
+  /**
+   * Bildirim planını günceller
+   */
+  public async updateNotificationSchedule(
+    intervalMs: number | null,
+    nextNotificationTime: number | null
+  ): Promise<void> {
+    try {
+      if (intervalMs === null) {
+        await AsyncStorage.removeItem(STORAGE_KEYS.NOTIFICATION_INTERVAL);
+        this.cache.notificationInterval = null;
+      } else {
+        await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATION_INTERVAL, intervalMs.toString());
+        this.cache.notificationInterval = intervalMs;
+      }
+
+      if (nextNotificationTime === null) {
+        await AsyncStorage.removeItem(STORAGE_KEYS.NEXT_NOTIFICATION_TIME);
+        this.cache.nextNotificationTime = null;
+      } else {
+        await AsyncStorage.setItem(
+          STORAGE_KEYS.NEXT_NOTIFICATION_TIME,
+          nextNotificationTime.toString()
+        );
+        this.cache.nextNotificationTime = nextNotificationTime;
+      }
+    } catch (error) {
+      console.error('Bildirim planı güncelleme hatası:', error);
+    }
+  }
+
+  private calculateNextNotification(entries: BeerEntry[]): {
+    intervalMs: number | null;
+    nextNotificationTime: number | null;
+  } {
+    if (entries.length === 0) {
+      return { intervalMs: null, nextNotificationTime: null };
+    }
+
+    const lastEntry = entries[entries.length - 1];
+
+    if (entries.length < 2) {
+      return { intervalMs: null, nextNotificationTime: null };
+    }
+
+    const prevEntry = entries[entries.length - 2];
+    let intervalMs = lastEntry.timestamp - prevEntry.timestamp;
+
+    if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
+      intervalMs = NOTIFICATION_TIMING.MIN_FALLBACK_MINUTES * 60 * 1000;
+    }
+
+    const maxIntervalMs = NOTIFICATION_TIMING.MAX_SAFETY_MINUTES * 60 * 1000;
+    intervalMs = Math.min(intervalMs, maxIntervalMs);
+
+    return {
+      intervalMs,
+      nextNotificationTime: lastEntry.timestamp + intervalMs,
+    };
   }
 }

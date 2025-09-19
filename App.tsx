@@ -2,10 +2,13 @@
 
 import React, { useEffect } from 'react';
 import { StatusBar, View, StyleSheet } from 'react-native';
+import { enableScreens } from 'react-native-screens';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { NotificationService } from './src/services/NotificationService';
 import { StorageService } from './src/services/StorageService';
+
+enableScreens(true);
 
 export default function App() {
   useEffect(() => {

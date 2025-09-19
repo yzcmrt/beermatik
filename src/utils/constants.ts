@@ -20,9 +20,8 @@ export const NOTIFICATION_MESSAGES = [
 ] as const;
 
 export const NOTIFICATION_TIMING = {
-  FIRST_BEER_DELAY: 15, // dakika - 15 dakika sonra ilk bildirim
-  MAX_INTERVAL: 120, // maksimum 2 saat
-  MIN_INTERVAL: 15, // minimum 15 dakika
+  MIN_FALLBACK_MINUTES: 1, // Arada ölçülemeyen durumlarda minimum 1 dakika
+  MAX_SAFETY_MINUTES: 240, // Aşırı büyük aralıkları sınırlamak için 4 saat
 } as const;
 
 export const STORAGE_KEYS = {
@@ -33,6 +32,8 @@ export const STORAGE_KEYS = {
   SELECTED_SIZE: 'selectedSize',
   NOTIFICATION_ENABLED: 'notificationEnabled',
   BEER_ENTRIES: 'beerEntries',
+  NOTIFICATION_INTERVAL: 'notificationInterval',
+  NEXT_NOTIFICATION_TIME: 'nextNotificationTime',
 } as const;
 
 export const COLORS = {
